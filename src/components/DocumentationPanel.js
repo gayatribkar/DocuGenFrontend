@@ -16,6 +16,9 @@ const DocumentationPanel = ({ documentation, branches }) => {
   // Function to download content as PDF
   const downloadPDF = () => {
     const input = document.getElementById("doc-content");
+    const originalStyle = input.style.cssText; // Store current styles
+    input.style.overflow = "visible"; // Ensure overflow is visible
+    input.style.maxHeight = "none"; // Remove max-height restriction
     html2canvas(input).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "pt", "a4");
@@ -26,8 +29,23 @@ const DocumentationPanel = ({ documentation, branches }) => {
       
       pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
       pdf.save("documentation.pdf");
+    input.style.cssText = originalStyle;
     });
   };
+  // const downloadPDF = () => {
+  //   const input = document.getElementById("doc-content");
+  //   html2canvas(input).then((canvas) => {
+  //     const imgData = canvas.toDataURL("image/png");
+  //     const pdf = new jsPDF("p", "pt", "a4");
+  //     const pdfWidth = pdf.internal.pageSize.getWidth();
+  //     const pdfHeight = pdf.internal.pageSize.getHeight();
+  //     const imgWidth = pdfWidth;
+  //     const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+  //     pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+  //     pdf.save("documentation.pdf");
+  //   });
+  // };
 
   // Function to copy documentation text to clipboard with visual feedback
   const copyToClipboard = () => {

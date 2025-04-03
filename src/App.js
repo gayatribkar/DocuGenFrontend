@@ -22,18 +22,11 @@ function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState("");
-
-
-
-
   const handleGenerateDocs = async () => {
     if (!githubLink.trim()) return;
+    setChatMessages([]); 
     setIsProcessing(true);
     setDocumentation("");
-
-
-
-
     try {
       const response = await fetch("http://localhost:5000/generate-docs", {
         method: "POST",
@@ -45,26 +38,13 @@ function App() {
         }),
       });
 
-
-
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-
-
-
       const data = await response.json();
       console.log("Received Data:", data);
-
-
-
-
       setDocumentation(data.gpt_summary || "No documentation generated.");
-
-
-
 
       if (data.branches && data.branches.length > 0) {
         setBranches(data.branches);
@@ -80,22 +60,13 @@ function App() {
     }
   };
 
-
-
-
   const handleChatSubmit = async (message) => {
     if (!message.trim()) return;
-
-
-
 
     const newMessages = [...chatMessages, { sender: "user", text: message }];
     setChatMessages(newMessages);
     setIsChatLoading(true);
-
-
-
-
+  
     try {
       const response = await fetch("http://localhost:5000/chat", {
         method: "POST",
@@ -107,28 +78,62 @@ function App() {
           userMessage: message,
         }),
       });
-
-
-
-
+  
       const data = await response.json();
+      // Add the isMarkdown flag for system messages to trigger custom markdown rendering
       setChatMessages((prev) => [
         ...prev,
-        { sender: "system", text: data.chatResponse || "No response received." },
+        {
+          sender: "system",
+          text: data.chatResponse || "No response received.",
+          isMarkdown: true,
+        },
       ]);
     } catch (error) {
       console.error("Error in chat interaction:", error);
       setChatMessages((prev) => [
         ...prev,
-        { sender: "system", text: "Error processing request." },
+        { sender: "system", text: "Error processing request.", isMarkdown: true },
       ]);
     } finally {
       setIsChatLoading(false);
     }
   };
 
+  // const handleChatSubmit = async (message) => {
+  //   if (!message.trim()) return;
 
+  //   const newMessages = [...chatMessages, { sender: "user", text: message }];
+  //   setChatMessages(newMessages);
+  //   setIsChatLoading(true);
 
+  //   try {
+  //     const response = await fetch("http://localhost:5000/chat", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         githubLink,
+  //         persona,
+  //         documentation,
+  //         userMessage: message,
+  //       }),
+  //     });
+
+  //     const data = await response.json();
+  //     setChatMessages((prev) => [
+  //       ...prev,
+  //       { sender: "system", text: data.chatResponse || "No response received." },
+  //     ]);
+  //   } catch (error) {
+  //     console.error("Error in chat interaction:", error);
+  //     setChatMessages((prev) => [
+  //       ...prev,
+  //       { sender: "system", text: "Error processing request." },
+  //     ]);
+  //   } finally {
+  //     setIsChatLoading(false);
+  //   }
+  // };
 
   return (
     <div className={darkMode ? "app dark-mode" : "app"}>
@@ -136,9 +141,6 @@ function App() {
         <img src={logo} alt="DocuGen Logo" className="logo" />
         <h1>Documentation Generator</h1>
       </header>
-
-
-
 
       <div className="app-body">
         <aside className="sidebar">
@@ -158,9 +160,6 @@ function App() {
             {isProcessing ? "Generating..." : "Generate Docs"}
           </button>
         </aside>
-
-
-
 
         <main className="main-panel">
           {isProcessing && <ProcessingIndicator />}
@@ -188,7 +187,4 @@ function App() {
 }
 
 
-
-
 export default App;
-
